@@ -1,6 +1,7 @@
 import express from "express";
 import mysql from "mysql";
 import { usermodel } from "./model/user";
+import bcrypt from 'bcrypt';
 
 export const router = express.Router();
 export const conn = mysql.createPool({
@@ -10,7 +11,7 @@ export const conn = mysql.createPool({
     password: "64011212157@csmsu",
     database: "web65_64011212157",
   });
-    const bcrypt = require('bcrypt');
+    // const bcrypt = require('bcrypt');
 //register สมัคร
 router.post('/', async (req, res)=>{//req รับเข้ามา res ส่งออก  register
     const user :usermodel=req.body;
