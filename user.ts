@@ -1,6 +1,8 @@
-import express from "express";
+// import express from "express";
+const express = require('express');
 import mysql from "mysql";
 import { usermodel } from "./model/user";
+import bcrypt from 'bcrypt';
 
 export const router = express.Router();
 export const conn = mysql.createPool({
@@ -10,9 +12,9 @@ export const conn = mysql.createPool({
     password: "64011212157@csmsu",
     database: "web65_64011212157",
   });
-    const bcrypt = require('bcrypt');
+    // const bcrypt = require('bcrypt');
 //register สมัคร
-router.post('/', async (req, res)=>{//req รับเข้ามา res ส่งออก  register
+router.post('/', async (req:any, res:any)=>{//req รับเข้ามา res ส่งออก  register
     const user :usermodel=req.body;
     const queryAsync=util.promisify(conn.query).bind(conn);
     let sql = mysql.format("SELECT `Email` FROM `User` WHERE Email=?", [user.Email]);
@@ -48,7 +50,7 @@ router.post('/', async (req, res)=>{//req รับเข้ามา res ส่
 });
 
 //login
-router.post('/login', async (req, res)=>{//req รับเข้ามา res ส่งออก  register
+router.post('/login', async (req:any, res:any)=>{//req รับเข้ามา res ส่งออก  register
     const user :usermodel=req.body;
     const queryAsync=util.promisify(conn.query).bind(conn);
     let sql = mysql.format("SELECT `Uid`, `Name`, `Email`, `Password`, `Profileimage`, `Detail`, `Type` FROM `User` WHERE Email=?", [user.Email]);
@@ -77,7 +79,7 @@ router.post('/login', async (req, res)=>{//req รับเข้ามา res �
 });
 
 // แสดง user ทั้งหมด  แสดงตาม id
-router.get('/', (req, res)=>{
+router.get('/', (req:any, res:any)=>{
     if (req.query.id) {
         conn.query("SELECT `Uid`, `Name`, `Email`, `Password`, `Profileimage`, `Detail`, `Type` FROM `User` WHERE Uid=?" , [req.query.id],(err, result)=>{
             if (err){
@@ -98,7 +100,7 @@ router.get('/', (req, res)=>{
 });
 
 //delete user
-router.delete("/:id", (req, res) => {
+router.delete("/:id", (req:any, res:any) => {
     let id = +req.params.id;
     conn.query("DELETE FROM `User` WHERE Uid=?", [id], (err, result) => {
        if (err) throw err;
@@ -111,7 +113,7 @@ router.delete("/:id", (req, res) => {
 //update
 import util from "util"
 
-  router.put("/:id", async (req, res) => {
+  router.put("/:id", async (req:any, res:any) => {
     let id = +req.params.id;
     let user: usermodel = req.body;
     let userOriginal: usermodel | undefined;
@@ -145,7 +147,7 @@ import util from "util"
   });
 
   //repassword
-  router.put("/repw/:id", async (req, res) => {
+  router.put("/repw/:id", async (req:any, res:any) => {
     let id = +req.params.id;
     let user: usermodel = req.body;
     const queryAsync=util.promisify(conn.query).bind(conn);
