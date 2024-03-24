@@ -2,10 +2,10 @@
 const express = require('express');
 // import cors from "cors";
 const cors = require('cors');
-import { router as user } from "./user";
-import { router as image } from "./image";
-import { router as vote } from "./vote";
-import { router as admin } from "./admin";
+import { router as user } from "./user.ts";
+import { router as image } from "./image.ts";
+import { router as vote } from "./vote.ts";
+import { router as admin } from "./admin.ts";
 import bodyParser from "body-parser";
 
 //app = web api
