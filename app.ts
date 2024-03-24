@@ -1,9 +1,9 @@
 import express from "express";
 import cors from "cors";
-import { router as user } from "./user.ts";
-import { router as image } from "./image.ts";
-import { router as vote } from "./vote.ts";
-import { router as admin } from "./admin.ts";
+import { router as user } from "./user";
+import { router as image } from "./image";
+import { router as vote } from "./vote";
+import { router as admin } from "./admin";
 import bodyParser from "body-parser";
 
 //app = web api
