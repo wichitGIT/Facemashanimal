@@ -2,7 +2,6 @@
 const express = require('express');
 import mysql from "mysql";
 import { usermodel } from "./model/user";
-import bcrypt from 'bcrypt';
 
 export const router = express.Router();
 export const conn = mysql.createPool({
@@ -12,7 +11,6 @@ export const conn = mysql.createPool({
     password: "64011212157@csmsu",
     database: "web65_64011212157",
   });
-    // const bcrypt = require('bcrypt');
 //register สมัคร
 router.post('/', async (req:any, res:any)=>{//req รับเข้ามา res ส่งออก  register
     const user :usermodel=req.body;
@@ -24,14 +22,11 @@ router.post('/', async (req:any, res:any)=>{//req รับเข้ามา re
         console.log('มีข้อมูลใน result:', result);
     } else {
         sql="INSERT INTO `User`( `Name`, `Email`, `Password`, `Profileimage`, `Detail`, `Type`) VALUES(?,?,?,?,?,?)";
-        bcrypt.hash(user.Password, 10, (err: any, hash: any) => {
-        if (err) {
-            console.error('Error hashing password:', err);
-        } else {
+
             sql =mysql.format(sql,[
                 user.Name,
                 user.Email,
-                hash,
+                user.Password,
                 user.Profileimage="https://cdn.pixabay.com/photo/2023/06/05/01/53/kitten-8041226_1280.jpg",
                 user.Detail=" say sumeting",
                 user.Type=0
@@ -41,8 +36,6 @@ router.post('/', async (req:any, res:any)=>{//req รับเข้ามา re
                 if (err) throw err;
                     res.status(201).json({ affected_row: result.affectedRows, last_idx: result.insertId }); 
                 });
-            }
-        });
         
     }
     
@@ -57,21 +50,16 @@ router.post('/login', async (req:any, res:any)=>{//req รับเข้าม�
     let result = await queryAsync(sql);
     const userData = JSON.parse(JSON.stringify(result));
     if (Array.isArray(result) && result.length > 0) {
-        bcrypt.compare(user.Password, result[0].Password, (err: any, pwresult: any) => {
-            if (err) {
-                res.status(201).json({message:"Password is incorrect"});
-                console.error('Error comparing passwords:', err);
-            } else {
-                if (pwresult) {
-                    res.status(201).json({pwresult:pwresult, last_idx: userData[0].Uid,status : userData[0].Type });
+        
+
+                if (user.Password==result[0].Password) {
+                    res.status(201).json({pwresult:user.Password==result[0].Password, last_idx: userData[0].Uid,status : userData[0].Type });
                     console.log('Password is correct');
                 } else {
-                    res.status(201).json(pwresult);
+                    res.status(201).json(user.Password==result[0].Password);
                     // res.status(201).json({message:"Password is incorrect"});
                     console.log('Password is incorrect');
                 }
-            }
-        });
         console.log('มีข้อมูลใน result:', result);
     } else {
         res.status(201).json({message:"Email is incorrect"});
@@ -155,13 +143,9 @@ import util from "util"
     let result = await queryAsync(sql);
     const userData = JSON.parse(JSON.stringify(result));
     if (user.Email==userData[0].Email){
-        bcrypt.hash(user.Password, 10, (err: any, hash: any) => {
-            if (err) {
-                console.error('Error hashing password:', err);
-            } else {
                 let sql="UPDATE `User` SET `Password`=? WHERE Uid=?";
                 sql =mysql.format(sql,[
-                    hash,
+                    user.Password,
                     id
                 ])
                 conn.query(sql,(err,result)=>{
@@ -169,8 +153,6 @@ import util from "util"
                     if (err) throw err;
                         res.status(201).json({ affected_row: result.affectedRows}); 
                     });
-                }
-            });
         }else{
             res.status(555).send("Email invalid")
         }
