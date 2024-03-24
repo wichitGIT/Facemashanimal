@@ -1,6 +1,7 @@
 // import express from "express";
 const express = require('express');
-import cors from "cors";
+// import cors from "cors";
+const cors = require('cors');
 import { router as user } from "./user";
 import { router as image } from "./image";
 import { router as vote } from "./vote";
