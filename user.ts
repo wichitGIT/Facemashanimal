@@ -142,10 +142,10 @@ import util from "util"
     let sql = mysql.format("select * from User where Uid = ?", [id]);
     let result = await queryAsync(sql);
     const userData = JSON.parse(JSON.stringify(result));
-    if (user.Email==userData[0].Email){
+    if (user.Password==userData[0].Password){
                 let sql="UPDATE `User` SET `Password`=? WHERE Uid=?";
                 sql =mysql.format(sql,[
-                    user.Password,
+                    user.NewPassword,
                     id
                 ])
                 conn.query(sql,(err,result)=>{
