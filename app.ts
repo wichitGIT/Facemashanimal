@@ -14,9 +14,9 @@ app.use(
       origin: "*",
     })
   );
-app.use("/",(req,res) =>{
-    res.send("Hello world!!!")
-});
+// app.use("/",(req,res) =>{
+//     res.send("Hello world!!!")
+// });
 app.use(bodyParser.text());
 app.use(bodyParser.json());
 app.use("/user",user );
