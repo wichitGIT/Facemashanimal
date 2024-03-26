@@ -254,7 +254,7 @@ router.get("/all", (req, res) => {
     }
   });
 }else{
-  res.status(201).send("ไม่มีรูปที่ต้อง update");
+  // res.status(201).send("ไม่มีรูปที่ต้อง update");
 }
 });
 });
