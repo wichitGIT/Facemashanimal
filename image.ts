@@ -15,7 +15,7 @@ export const conn = mysql.createPool({
 
   
 
-cron.schedule('15 0 * * *', () => {
+cron.schedule('25 0 * * *', () => {
   console.log("hello");
   const queryAsync=util.promisify(conn.query).bind(conn);
 
