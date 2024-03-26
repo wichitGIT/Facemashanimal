@@ -254,7 +254,19 @@ router.get("/all", (req, res) => {
     }
   });
 }else{
-  // res.status(201).send("ไม่มีรูปที่ต้อง update");
+  res.status(201).send("ไม่มีรูปที่ต้อง update");
 }
 });
+});
+
+router.put("/updateimgIid", (req, res) => {
+  // let id = +req.params.id;
+  const newdata :imagemodel=req.body;
+  conn.query("delete from `Vote` where Iid = ?", [newdata.Imgid], (err, result) => {
+    if (err) throw err;
+    conn.query("UPDATE `Image` SET`Uid`=?,`image`=?,`Name`=?,`Time`=NOW(),`Score`=0 WHERE Iid = ?" ,[newdata.Uid,newdata.image,newdata.Name,newdata.Imgid], (err, result) => {
+    if (err) throw err;
+      res.json(result);
+    });
+  });
 });
