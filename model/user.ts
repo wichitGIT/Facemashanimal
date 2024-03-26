@@ -6,4 +6,5 @@ export interface usermodel {
     Profileimage:    string;
     Detail:        string;
     Type:         number;
+    NewPassword:string;
 }
