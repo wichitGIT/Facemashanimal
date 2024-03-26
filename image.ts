@@ -29,7 +29,7 @@ cron.schedule('10 0 * * *', () => {
     let result = await queryAsync(sql);
     let imageData = JSON.parse(JSON.stringify(result));
     imageData = imageData[0] as imagemodel
-    console.log(imageData);
+    // console.log(imageData);
     
     const datenow =new Date();
     const timestamp = Date.parse(imageData.Time);
@@ -213,7 +213,7 @@ router.get("/all", (req, res) => {
     let result = await queryAsync(sql);
     let imageData = JSON.parse(JSON.stringify(result));
     imageData = imageData[0] as imagemodel
-    console.log(imageData);
+    // console.log(imageData);
     
     const datenow =new Date();
     const timestamp = Date.parse(imageData.Time);
