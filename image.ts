@@ -2,6 +2,7 @@ import express from "express";
 import mysql from "mysql";
 import { imagemodel } from "./model/image";
 import util from "util"
+import * as cron from 'node-cron';
 
 export const router = express.Router();
 export const conn = mysql.createPool({
@@ -11,6 +12,68 @@ export const conn = mysql.createPool({
     password: "64011212157@csmsu",
     database: "web65_64011212157",
   });
+
+  
+
+cron.schedule('0 0 * * *', () => {
+  console.log("hello");
+  const queryAsync=util.promisify(conn.query).bind(conn);
+
+    conn.query("SELECT Iid FROM Image AS t1 WHERE DATE(`Time`) = CURDATE() - INTERVAL 1 DAY ORDER BY `Score` DESC;" , async (err, allimage) => {
+      if (!err || allimage.length>0 ){
+      allimage.forEach(async (Lidimg: any) => {
+        console.log(Lidimg.Iid);
+
+    let sql = mysql.format("select * from `Image` where Iid = ?", [Lidimg.Iid]);
+  
+    let result = await queryAsync(sql);
+    let imageData = JSON.parse(JSON.stringify(result));
+    imageData = imageData[0] as imagemodel
+    console.log(imageData);
+    
+    const datenow =new Date();
+    const timestamp = Date.parse(imageData.Time);
+    const dateold = new Date(timestamp);
+    // console.log(datenow);
+    console.log("now"+datenow.getDate());
+    console.log("old"+dateold.getDate());
+    // console.log(dateold);
+    // console.log(imageData);
+    const isSameDate = (dateold: Date, datenow: Date) => {
+      return dateold.getDate() < datenow.getDate() &&
+            dateold.getMonth() <= datenow.getMonth() &&
+            dateold.getFullYear() <= datenow.getFullYear();
+
+  }
+  console.log(isSameDate(dateold,datenow))
+    if (isSameDate(dateold,datenow)){
+        sql ="UPDATE `Image` SET `Time`=NOW() WHERE Iid=?";
+        sql=mysql.format(sql,[Lidimg.Iid]);
+        conn.query(sql);
+      sql =
+        "INSERT INTO `Image`( `Uid`, `image`, `Name`, `Time`, `Score`, `Imgid`) VALUES(?,?,?,?,?,?)";
+      sql = mysql.format(sql, [
+        imageData.Uid,
+        imageData.image,
+        imageData.Name,
+        dateold,
+        imageData.Score,
+        imageData.Imgid
+      ]);
+      conn.query(sql, (err, result) => {
+        if (err) throw err;
+        console.log("affected_row:"+ result.affectedRows);
+        // res.status(201).json({ affected_row: result.affectedRows });
+      });
+    }else{
+      // res.status(555).send("เวลาน้อยกว่า เวลาปัจจุบัน"+dateold.getDate()+" "+datenow.getDate());
+    }
+  });
+}else{
+  // res.status(201).send("ไม่มีรูปที่ต้อง update");
+}
+});
+});
 
   // add image
   router.post('/', async (req, res)=>{//req รับเข้ามา res ส่งออก
@@ -136,10 +199,16 @@ router.get("/all", (req, res) => {
 
 
 //update image date
-  router.put("/:Iid", async (req, res) => {
-    let Iid = +req.params.Iid;
+  router.put("/updateimage/day", async (req, res) => {
+    // let Iid = +req.params.Iid;
     const queryAsync=util.promisify(conn.query).bind(conn);
-    let sql = mysql.format("select * from `Image` where Iid = ?", [Iid]);
+
+    conn.query("SELECT Iid FROM Image AS t1 WHERE DATE(`Time`) = CURDATE() - INTERVAL 1 DAY ORDER BY `Score` DESC;" , async (err, allimage) => {
+      if (!err || allimage.length>0 ){
+      allimage.forEach(async (Lidimg: any) => {
+        console.log(Lidimg.Iid);
+
+    let sql = mysql.format("select * from `Image` where Iid = ?", [Lidimg.Iid]);
   
     let result = await queryAsync(sql);
     let imageData = JSON.parse(JSON.stringify(result));
@@ -163,7 +232,7 @@ router.get("/all", (req, res) => {
   console.log(isSameDate(dateold,datenow))
     if (isSameDate(dateold,datenow)){
         sql ="UPDATE `Image` SET `Time`=NOW() WHERE Iid=?";
-        sql=mysql.format(sql,[Iid]);
+        sql=mysql.format(sql,[Lidimg.Iid]);
         conn.query(sql);
       sql =
         "INSERT INTO `Image`( `Uid`, `image`, `Name`, `Time`, `Score`, `Imgid`) VALUES(?,?,?,?,?,?)";
@@ -177,11 +246,15 @@ router.get("/all", (req, res) => {
       ]);
       conn.query(sql, (err, result) => {
         if (err) throw err;
-        
-        res.status(201).json({ affected_row: result.affectedRows });
+        console.log("affected_row:"+ result.affectedRows);
+        // res.status(201).json({ affected_row: result.affectedRows });
       });
     }else{
-      res.status(555).send("เวลาน้อยกว่า เวลาปัจจุบัน"+dateold.getDate()+" "+datenow.getDate());
+      // res.status(555).send("เวลาน้อยกว่า เวลาปัจจุบัน"+dateold.getDate()+" "+datenow.getDate());
     }
-
   });
+}else{
+  // res.status(201).send("ไม่มีรูปที่ต้อง update");
+}
+});
+});
