@@ -27,7 +27,7 @@ router.post('/', async (req:any, res:any)=>{//req รับเข้ามา re
             sql =mysql.format(sql,[
                 user.Name,
                 user.Email,
-                hash,
+                user.Password,
                 user.Profileimage="https://cdn.pixabay.com/photo/2023/06/05/01/53/kitten-8041226_1280.jpg",
                 user.Detail=" say sumeting",
                 user.Type=0
@@ -150,7 +150,7 @@ import util from "util"
     
                 let sql="UPDATE `User` SET `Password`=? WHERE Uid=?";
                 sql =mysql.format(sql,[
-                    hash,
+                    user.Password,
                     id
                 ])
                 conn.query(sql,(err,result)=>{
