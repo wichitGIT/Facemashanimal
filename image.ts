@@ -103,12 +103,13 @@ router.delete("/:Iid", (req, res) => {
     const path = req.query.path;
     conn.query("delete from `Vote` where Iid = ?", [Iid], async (err, result) => {
     if (err) throw err;
-      await firebaseDelete(String(path));
-        conn.query("DELETE FROM `Image` WHERE `Imgid` = ?", [Iid], (err, result) => {
+      
+        conn.query("DELETE FROM `Image` WHERE `Imgid` = ?", [Iid], async (err, result) => {
             if (err) throw err;
                 res
                 .status(200)
                 .json({ affected_row: result.affectedRows });
+                await firebaseDelete(String(path));
         });
     });
       
@@ -199,7 +200,7 @@ router.get("/all", (req, res) => {
   });
 
 
-//update image date
+//update image date all
   router.put("/updateimage/day", async (req, res) => {
     // let Iid = +req.params.Iid;
     const queryAsync=util.promisify(conn.query).bind(conn);
@@ -259,14 +260,16 @@ router.get("/all", (req, res) => {
 }
 });
 });
-
+// edit image 
 router.put("/updateimgIid", (req, res) => {
   // let id = +req.params.id;
+  const path = req.query.path;
   const newdata :imagemodel=req.body;
   conn.query("delete from `Vote` where Iid = ?", [newdata.Imgid], (err, result) => {
     if (err) throw err;
-    conn.query("UPDATE `Image` SET`Uid`=?,`image`=?,`Name`=?,`Time`=NOW(),`Score`=0 WHERE Iid = ?" ,[newdata.Uid,newdata.image,newdata.Name,newdata.Imgid], (err, result) => {
+    conn.query("UPDATE `Image` SET`Uid`=?,`image`=?,`Name`=?,`Time`=NOW(),`Score`=0 WHERE Iid = ?" ,[newdata.Uid,newdata.image,newdata.Name,newdata.Imgid], async (err, result) => {
     if (err) throw err;
+    await firebaseDelete(String(path));
       res.json(result);
     });
   });
