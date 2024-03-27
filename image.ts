@@ -3,6 +3,8 @@ import mysql from "mysql";
 import { imagemodel } from "./model/image";
 import util from "util"
 import * as cron from 'node-cron';
+import { deleteObject, ref } from "firebase/storage";
+import { storage } from "./filebaseconnect";
 
 export const router = express.Router();
 export const conn = mysql.createPool({
@@ -13,10 +15,7 @@ export const conn = mysql.createPool({
     database: "web65_64011212157",
   });
 
-  
-
-cron.schedule('10 0 * * *', () => {
-  console.log("hello");
+cron.schedule('20 0 * * *', () => {
   const queryAsync=util.promisify(conn.query).bind(conn);
 
     conn.query("SELECT Iid FROM Image AS t1 WHERE DATE(`Time`) = CURDATE() - INTERVAL 1 DAY ORDER BY `Score` DESC;" , async (err, allimage) => {
@@ -101,8 +100,10 @@ cron.schedule('10 0 * * *', () => {
 /// del image
 router.delete("/:Iid", (req, res) => {
     let Iid = +req.params.Iid;
-    conn.query("delete from `Vote` where Iid = ?", [Iid], (err, result) => {
+    const path = req.query.path;
+    conn.query("delete from `Vote` where Iid = ?", [Iid], async (err, result) => {
     if (err) throw err;
+      await firebaseDelete(String(path));
         conn.query("DELETE FROM `Image` WHERE `Imgid` = ?", [Iid], (err, result) => {
             if (err) throw err;
                 res
@@ -213,7 +214,7 @@ router.get("/all", (req, res) => {
     let result = await queryAsync(sql);
     let imageData = JSON.parse(JSON.stringify(result));
     imageData = imageData[0] as imagemodel
-    // console.log(imageData);
+    console.log(imageData);
     
     const datenow =new Date();
     const timestamp = Date.parse(imageData.Time);
@@ -254,7 +255,7 @@ router.get("/all", (req, res) => {
     }
   });
 }else{
-  // res.status(201).send("ไม่มีรูปที่ต้อง update");
+  res.status(201).send("ไม่มีรูปที่ต้อง update");
 }
 });
 });
@@ -270,3 +271,16 @@ router.put("/updateimgIid", (req, res) => {
     });
   });
 });
+
+
+async function firebaseDelete(path: string) {
+  console.log("In firebase Delete:"+path);
+  
+  const storageRef = ref(
+    storage,
+    "/imagesvs/" + path.split("/imagesvs/")[1].split("?")[0]
+  );
+  const snapshost = await deleteObject(storageRef);
+}
+
+

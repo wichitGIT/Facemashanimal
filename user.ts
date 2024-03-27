@@ -2,6 +2,7 @@
 const express = require('express');
 import mysql from "mysql";
 import { usermodel } from "./model/user";
+import * as crypto from 'crypto';
 
 export const router = express.Router();
 export const conn = mysql.createPool({
@@ -11,6 +12,25 @@ export const conn = mysql.createPool({
     password: "64011212157@csmsu",
     database: "web65_64011212157",
   });
+//เช็คpassword
+  function verifyPassword(enteredPassword: string, hashedPassword: string): boolean {
+    const salt='csmsu'
+    const hash = crypto.createHash('sha256');
+    // ใส่เนื้อหาของรหัสผ่านที่ผู้ใช้ป้อนไว้
+    hash.update(enteredPassword + salt);
+    // ทำการแฮชรหัสผ่านที่ผู้ใช้ป้อนเพื่อเปรียบเทียบกับรหัสผ่านที่ถูกแฮช
+    const hashedEnteredPassword = hash.digest('hex');
+    // ทำการเปรียบเทียบรหัสผ่านที่ผู้ใช้ป้อนเข้ามากับรหัสผ่านที่ถูกแฮช
+    return hashedEnteredPassword === hashedPassword;
+}
+//hashpassword
+function hashPassword(password: string): string {
+    const salt='csmsu'
+    const hash = crypto.createHash('sha256');
+    hash.update(password + salt);
+    return hash.digest('hex');
+}
+
 //register สมัคร
 router.post('/', async (req:any, res:any)=>{//req รับเข้ามา res ส่งออก  register
     const user :usermodel=req.body;
@@ -19,20 +39,20 @@ router.post('/', async (req:any, res:any)=>{//req รับเข้ามา re
     let result = await queryAsync(sql);
     if (Array.isArray(result) && result.length > 0) {
         res.status(555).send("Email valid")
-        console.log('มีข้อมูลใน result:', result);
+        console.log('มีข้อมูลใน result:');
     } else {
         sql="INSERT INTO `User`( `Name`, `Email`, `Password`, `Profileimage`, `Detail`, `Type`) VALUES(?,?,?,?,?,?)";
-
+        const hashedPassword: string = hashPassword(user.Password);
             sql =mysql.format(sql,[
                 user.Name,
                 user.Email,
-                user.Password,
+                hashedPassword,
                 user.Profileimage="https://cdn.pixabay.com/photo/2023/06/05/01/53/kitten-8041226_1280.jpg",
                 user.Detail=" say sumeting",
                 user.Type=0
             ])
             conn.query(sql,(err,result)=>{
-                
+
                 if (err) throw err;
                     res.status(201).json({ affected_row: result.affectedRows, last_idx: result.insertId }); 
                 });
@@ -52,15 +72,15 @@ router.post('/login', async (req:any, res:any)=>{//req รับเข้าม�
     if (Array.isArray(result) && result.length > 0) {
         
 
-                if (user.Password==result[0].Password) {
-                    res.status(201).json({pwresult:user.Password==result[0].Password, last_idx: userData[0].Uid,status : userData[0].Type });
+                if (verifyPassword(user.Password,result[0].Password)) {
+                    res.status(201).json({pwresult:"true", last_idx: userData[0].Uid,status : userData[0].Type });
                     console.log('Password is correct');
                 } else {
-                    res.status(201).json(user.Password==result[0].Password);
+                    res.status(201).json({pwresult:"false"});
                     // res.status(201).json({message:"Password is incorrect"});
                     console.log('Password is incorrect');
                 }
-        console.log('มีข้อมูลใน result:', result);
+        console.log('มีข้อมูลใน result:');
     } else {
         res.status(201).json({message:"Email is incorrect"});
         }
@@ -111,13 +131,13 @@ import util from "util"
   
     let result = await queryAsync(sql);
     const rawData = JSON.parse(JSON.stringify(result));
-    console.log(rawData);
+    // console.log(rawData);
     userOriginal = rawData[0] as usermodel;
-    console.log(userOriginal);
+    // console.log(userOriginal);
   
     let updateUser = {...userOriginal, ...user};
-    console.log(user);
-    console.log(updateUser);
+    // console.log(user);
+    // console.log(updateUser);
   
       sql =
         "UPDATE `User` SET `Name`=?,`Email`=?,`Profileimage`=?,`Detail`=? WHERE Uid=?";
@@ -142,10 +162,11 @@ import util from "util"
     let sql = mysql.format("select * from User where Uid = ?", [id]);
     let result = await queryAsync(sql);
     const userData = JSON.parse(JSON.stringify(result));
-    if (user.Password==userData[0].Password){
+    if (verifyPassword(user.Password,userData[0].Password)){
                 let sql="UPDATE `User` SET `Password`=? WHERE Uid=?";
+                const hashedPassword: string =hashPassword(user.Password)
                 sql =mysql.format(sql,[
-                    user.NewPassword,
+                    hashedPassword,
                     id
                 ])
                 conn.query(sql,(err,result)=>{
@@ -154,7 +175,7 @@ import util from "util"
                         res.status(201).json({ affected_row: result.affectedRows}); 
                     });
         }else{
-            res.status(555).send("Email invalid")
+            res.status(555).send("password invalid")
         }
     });
     
