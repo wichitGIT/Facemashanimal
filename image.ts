@@ -278,12 +278,20 @@ router.put("/updateimgIid", (req, res) => {
 
 async function firebaseDelete(path: string) {
   console.log("In firebase Delete:"+path);
-  
-  const storageRef = ref(
-    storage,
-    "/imagesvs/" + path.split("/imagesvs/")[1].split("?")[0]
-  );
-  const snapshost = await deleteObject(storageRef);
+  let urlimg:string ;
+  try {
+     urlimg = path.split("/imagesvs/")[1].split("?")[0];
+     if (urlimg) {
+    const storageRef = ref(
+      storage,
+      "/imagesvs/" + urlimg
+    );
+    const snapshost = await deleteObject(storageRef);
+}
+} catch (error) {
+    console.log("no image in firebase");
+}
+
 }
 
 
